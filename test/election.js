@@ -1,7 +1,25 @@
 var Election = artifacts.require("./Election.sol");
+var Passport = artifacts.require("./Passport.sol");
 
 contract("Election", function(accounts) {
   var electionInstance;
+  var passportInstance;
+
+it("add new voter", function() {
+    return Passport.deployed().then(function(instance) {
+      passportInstance = instance;
+      instance.register("New", "Voter", 42, {from: accounts[1]});
+      return instance.votersCount();
+    }).then(function(count) {
+      assert.equal(count, 2);
+      return passportInstance.voters(accounts[1]);
+    }).then(function(voter) {
+      assert.equal(voter[0], accounts[1], "contains the correct id");
+      assert.equal(voter[1], "New", "contains the correct first name");
+      assert.equal(voter[2], "Voter", "contains the correct last name");
+      assert.equal(voter[3], 42, "contains the correct age");
+    });
+  });
 
   it("initializes with two candidates", function() {
     return Election.deployed().then(function(instance) {
@@ -107,6 +125,28 @@ contract("Election", function(accounts) {
     }).then(function(candidate2) {
       var voteCount = candidate2[2];
       assert.equal(voteCount, 1, "candidate 2 did not receive any votes");
+    });
+  });
+
+  it("throws an exception for unknown voter", function() {
+    return Election.deployed().then(function(instance) {
+      return electionInstance.vote(candidateId, { from: accounts[2] });
+    }).then(assert.fail).catch(function(error) {
+      assert(error.message.indexOf('revert') >= 0, "error message must contain revert");
+      assert(error.message, "No passport info provided by voter");
+      return electionInstance.candidates(1);
+    });
+  });
+
+  it("vote after voting closed", function() {
+    return Passport.deployed().then(function(instance) {
+      passportInstance = instance;
+      instance.register("New", "Voter", 42, {from: accounts[2]});
+      electionInstance.closeVoting({ from: accounts[0] });
+      return electionInstance.vote(candidateId, { from: accounts[2] });
+    }).then(assert.fail).catch(function(error) {
+      assert(error.message.indexOf('revert') >= 0, "error message must contain revert");
+      assert(error.message, "Sorry but voting is closed");
     });
   });
 });

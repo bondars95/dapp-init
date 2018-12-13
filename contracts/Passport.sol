@@ -18,7 +18,7 @@ contract Passport {
         register("Sara", "Cohneour", 42);
     }
 
-    function voterIsRegistered (address voterAddress) public returns (bool) {
+    function voterIsRegistered (address voterAddress) public view returns (bool) {
         return voters[voterAddress].age != 0;
     }
 
