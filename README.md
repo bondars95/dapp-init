@@ -9,3 +9,12 @@ allow you to store user data and use unique users for voting.
 1. Start Ganashe (Ethereum client).
 2. truffle migrate --reset (compile and send contracts to network).
 3. truffle test
+4. truffle console
+
+var accounts;
+var passport;
+var election:
+
+web3.eth.getAccounts(function(err,res) { accounts = res; });
+Election.deployed().then(function(instance) { election = instance });
+Passport.deployed().then(function(instance) { passport = instance });
